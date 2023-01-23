@@ -186,6 +186,14 @@ result[Event::ticketPrices, "free"]
 
   - [Kotest](https://kotest.io) provides various matchers for use with Konform. They can be used in your tests to assert that a given object is validated successfully or fails validation with specific error messages. See [documentation](https://kotest.io/docs/assertions/konform-matchers.html).
 
+
+##### Publishing
+Run gradle script below to publish this to agriaku nexus repository.
+
+```shell
+gradle publishJvmPublicationToAgriakuRepository
+```
+
 ##### Author
 
 [Niklas Lochschmidt](https://twitter.com/niklas_l)
