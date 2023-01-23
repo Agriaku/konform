@@ -7,7 +7,7 @@ import io.konform.validation.Validation
 import io.konform.validation.ValidationResult
 import kotlin.reflect.KProperty1
 
-internal class OptionalValidation<T: Any>(
+internal class OptionalValidation<T : Any>(
     private val validation: Validation<T>
 ) : Validation<T?> {
     override fun validate(value: T?): ValidationResult<T?> {
@@ -16,7 +16,7 @@ internal class OptionalValidation<T: Any>(
     }
 }
 
-internal class RequiredValidation<T: Any>(
+internal class RequiredValidation<T : Any>(
     private val validation: Validation<T>
 ) : Validation<T?> {
     override fun validate(value: T?): ValidationResult<T?> {
@@ -45,6 +45,22 @@ internal class OptionalPropertyValidation<T, R>(
         return validation(propertyValue).mapError { ".${property.name}$it" }.map { value }
     }
 }
+
+internal class OptionalNotEmptyPropertyValidation<T>(
+    private val property: KProperty1<T, String?>,
+    private val validation: Validation<String>
+) : Validation<T> {
+    override fun validate(value: T): ValidationResult<T> {
+        val propertyValue = property(value) ?: return Valid(value)
+
+        if (propertyValue.isBlank()) {
+            return Valid(value)
+        }
+
+        return validation(propertyValue).mapError { ".${property.name}$it" }.map { value }
+    }
+}
+
 
 internal class RequiredPropertyValidation<T, R>(
     private val property: KProperty1<T, R?>,
@@ -86,7 +102,8 @@ internal class MapValidation<K, V>(
 ) : Validation<Map<K, V>> {
     override fun validate(value: Map<K, V>): ValidationResult<Map<K, V>> {
         return value.asSequence().fold(Valid(value)) { result: ValidationResult<Map<K, V>>, entry ->
-            val propertyValidation = validation(entry).mapError { ".${entry.key.toString()}${it.removePrefix(".value")}" }.map { value }
+            val propertyValidation =
+                validation(entry).mapError { ".${entry.key.toString()}${it.removePrefix(".value")}" }.map { value }
             result.combineWith(propertyValidation)
         }
 
