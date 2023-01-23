@@ -15,7 +15,6 @@ buildscript {
 plugins {
     id 'org.jetbrains.kotlin.multiplatform' version '1.7.10'
     id 'maven-publish'
-    id 'signing'
     id('io.github.gradle-nexus.publish-plugin') version '1.1.0'
 }
 
@@ -81,12 +80,11 @@ afterEvaluate {
             pom {
                 name = projectName
                 description = projectDesc
-                url = 'https://github.com/konform-kt/konform'
+                url = 'https://suxen33.agriaku.com/repositories/'
                 licenses {
                     license {
                         name = projectLicense
                         url = projectLicenseUrl
-                        distribution = 'repo'
                     }
                 }
                 developers {
@@ -94,23 +92,27 @@ afterEvaluate {
                         id = projectDevelNick
                         name = projectDevelName
                     }
+                    developer {
+                        id = "vcnt72"
+                        name = "Vincent Sanjaya"
+                    }
                 }
-
                 scm {
-                    url = "https://github.com/konform-kt/konform.git"
+                    url = "https://github.com/Agriaku/konform"
+                }
+                repositories {
+                    maven {
+                        def releasesRepoUrl = "https://suxen33.agriaku.com/repository/maven-releases/"
+                        def snapshotsRepoUrl = "https://suxen33.agriaku.com/repository/maven-snapshots/"
+                        url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+                        name = "Agriaku"
+                        credentials {
+                            username = "admin"
+                            password = "G7yWGUXTCpknm6yuPnppmXcugyPzHSFU"
+                        }
+                    }
                 }
             }
         }
-    }
-}
-
-signing {
-    useGpgCmd()
-    sign publishing.publications
-}
-
-nexusPublishing {
-    repositories {
-        sonatype()
     }
 }
