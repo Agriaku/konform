@@ -28,7 +28,7 @@ abstract class ValidationBuilder<T> {
     @JvmName("onEachMap")
     infix fun <K, V> KProperty1<T, Map<K, V>>.onEach(init: ValidationBuilder<Map.Entry<K, V>>.() -> Unit) = onEachMap(this, init)
     abstract infix fun <R> KProperty1<T, R?>.ifPresent(init: ValidationBuilder<R>.() -> Unit)
-    abstract infix fun <R: String> KProperty1<T, R?>.ifNotEmpty(init: ValidationBuilder<R>.() -> Unit)
+    abstract infix fun KProperty1<T, String?>.ifNotEmpty(init: ValidationBuilder<String>.() -> Unit)
 
     abstract infix fun <R> KProperty1<T, R?>.required(init: ValidationBuilder<R>.() -> Unit)
     abstract fun run(validation: Validation<T>)

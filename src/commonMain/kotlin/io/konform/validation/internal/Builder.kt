@@ -143,7 +143,7 @@ internal class ValidationBuilderImpl<T> : ValidationBuilder<T>() {
     }
 
 
-    override fun <R : String> KProperty1<T, R?>.ifNotEmpty(init: ValidationBuilder<R>.() -> Unit) {
+    override fun KProperty1<T, String?>.ifNotEmpty(init: ValidationBuilder<String>.() -> Unit) {
         getOrCreateBuilder(OptionalNotEmpty).also(init)
     }
 
