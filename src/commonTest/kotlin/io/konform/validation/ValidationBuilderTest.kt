@@ -45,7 +45,12 @@ class ValidationBuilderTest {
 
         Register(password = "a").let { assertEquals(Valid(it), twoDisjunctValidations(it)) }
         Register(password = "").let { assertEquals(1, countErrors(twoDisjunctValidations(it), Register::password)) }
-        Register(password = "aaaaaaaaaaa").let { assertEquals(1, countErrors(twoDisjunctValidations(it), Register::password)) }
+        Register(password = "aaaaaaaaaaa").let {
+            assertEquals(
+                1,
+                countErrors(twoDisjunctValidations(it), Register::password)
+            )
+        }
     }
 
     @Test
@@ -59,7 +64,12 @@ class ValidationBuilderTest {
 
         Register(password = "verysecure1").let { assertEquals(Valid(it), overlappingValidations(it)) }
         Register(password = "9").let { assertEquals(1, countErrors(overlappingValidations(it), Register::password)) }
-        Register(password = "insecure").let { assertEquals(1, countErrors(overlappingValidations(it), Register::password)) }
+        Register(password = "insecure").let {
+            assertEquals(
+                1,
+                countErrors(overlappingValidations(it), Register::password)
+            )
+        }
         Register(password = "pass").let { assertEquals(2, countErrors(overlappingValidations(it), Register::password)) }
     }
 
@@ -77,12 +87,22 @@ class ValidationBuilderTest {
             }
         }
 
-        Register(email = "tester@test.com", password = "verysecure1").let { assertEquals(Valid(it), overlappingValidations(it)) }
+        Register(email = "tester@test.com", password = "verysecure1").let {
+            assertEquals(
+                Valid(it),
+                overlappingValidations(it)
+            )
+        }
         Register(email = "tester@test.com").let {
             assertEquals(1, countFieldsWithErrors(overlappingValidations(it)))
             assertEquals(2, countErrors(overlappingValidations(it), Register::password))
         }
-        Register(password = "verysecure1").let { assertEquals(1, countErrors(overlappingValidations(it), Register::email)) }
+        Register(password = "verysecure1").let {
+            assertEquals(
+                1,
+                countErrors(overlappingValidations(it), Register::email)
+            )
+        }
         Register().let { assertEquals(2, countFieldsWithErrors(overlappingValidations(it))) }
     }
 
@@ -96,7 +116,12 @@ class ValidationBuilderTest {
 
         Register(referredBy = null).let { assertEquals(Valid(it), nullableFieldValidation(it)) }
         Register(referredBy = "poweruser@test.com").let { assertEquals(Valid(it), nullableFieldValidation(it)) }
-        Register(referredBy = "poweruser@").let { assertEquals(1, countErrors(nullableFieldValidation(it), Register::referredBy)) }
+        Register(referredBy = "poweruser@").let {
+            assertEquals(
+                1,
+                countErrors(nullableFieldValidation(it), Register::referredBy)
+            )
+        }
     }
 
     @Test
@@ -109,8 +134,18 @@ class ValidationBuilderTest {
 
         Register(referredBy = "poweruser@test.com").let { assertEquals(Valid(it), nullableFieldValidation(it)) }
 
-        Register(referredBy = null).let { assertEquals(1, countErrors(nullableFieldValidation(it), Register::referredBy)) }
-        Register(referredBy = "poweruser@").let { assertEquals(1, countErrors(nullableFieldValidation(it), Register::referredBy)) }
+        Register(referredBy = null).let {
+            assertEquals(
+                1,
+                countErrors(nullableFieldValidation(it), Register::referredBy)
+            )
+        }
+        Register(referredBy = "poweruser@").let {
+            assertEquals(
+                1,
+                countErrors(nullableFieldValidation(it), Register::referredBy)
+            )
+        }
     }
 
     @Test
@@ -124,7 +159,12 @@ class ValidationBuilderTest {
         }
 
         Register(home = Address("Home")).let { assertEquals(Valid(it), nestedTypeValidation(it)) }
-        Register(home = Address("")).let { assertEquals(1, countErrors(nestedTypeValidation(it), Register::home, Address::address)) }
+        Register(home = Address("")).let {
+            assertEquals(
+                1,
+                countErrors(nestedTypeValidation(it), Register::home, Address::address)
+            )
+        }
     }
 
     @Test
@@ -138,6 +178,21 @@ class ValidationBuilderTest {
         null.let { assertEquals(Valid(it), nullableTypeValidation(it)) }
         "poweruser@test.com".let { assertEquals(Valid(it), nullableTypeValidation(it)) }
         "poweruser@".let { assertEquals(1, countErrors(nullableTypeValidation(it))) }
+    }
+
+    @Test
+    fun validatingOptionalNotEmptyValues() {
+        val validations = Validation<Register> {
+            Register::email ifNotEmpty {
+                minLength(2)
+            }
+            Register::referredBy ifNotEmpty {}
+        }
+
+
+        Register(email = "vincent").let { assertEquals(Valid(it), validations.validate(it)) }
+        Register(email = "a").let { assertEquals(1, countErrors(validations.validate(it), Register::email)) }
+
     }
 
     @Test
@@ -163,8 +218,18 @@ class ValidationBuilderTest {
         }
 
         Register(email = "tester@test.com", password = "a").let { assertEquals(Valid(it), splitDoubleValidation(it)) }
-        Register(email = "tester@test.com", password = "").let { assertEquals(1, countErrors(splitDoubleValidation(it), Register::password)) }
-        Register(email = "tester@test.com", password = "aaaaaaaaaaa").let { assertEquals(1, countErrors(splitDoubleValidation(it), Register::password)) }
+        Register(email = "tester@test.com", password = "").let {
+            assertEquals(
+                1,
+                countErrors(splitDoubleValidation(it), Register::password)
+            )
+        }
+        Register(email = "tester@test.com", password = "aaaaaaaaaaa").let {
+            assertEquals(
+                1,
+                countErrors(splitDoubleValidation(it), Register::password)
+            )
+        }
         Register(email = "tester@").let { assertEquals(2, countFieldsWithErrors(splitDoubleValidation(it))) }
     }
 
@@ -292,9 +357,12 @@ class ValidationBuilderTest {
         }
 
         Data().let { assertEquals(Valid(it), mapValidation(it)) }
-        Data(registrations = mapOf(
-            "user1" to Register(email = "valid"),
-            "user2" to Register(email = "a")))
+        Data(
+            registrations = mapOf(
+                "user1" to Register(email = "valid"),
+                "user2" to Register(email = "a")
+            )
+        )
             .let {
                 assertEquals(0, countErrors(mapValidation(it), Data::registrations, "user1", Register::email))
                 assertEquals(1, countErrors(mapValidation(it), Data::registrations, "user2", Register::email))
@@ -307,7 +375,7 @@ class ValidationBuilderTest {
         data class Data(val registrations: Map<String, Register>? = null)
 
         val mapValidation = Validation<Data> {
-            Data::registrations ifPresent  {
+            Data::registrations ifPresent {
                 onEach {
                     Map.Entry<String, Register>::value {
                         Register::email {
@@ -321,9 +389,12 @@ class ValidationBuilderTest {
 
         Data(null).let { assertEquals(Valid(it), mapValidation(it)) }
         Data(emptyMap()).let { assertEquals(Valid(it), mapValidation(it)) }
-        Data(registrations = mapOf(
-            "user1" to Register(email = "valid"),
-            "user2" to Register(email = "a")))
+        Data(
+            registrations = mapOf(
+                "user1" to Register(email = "valid"),
+                "user2" to Register(email = "a")
+            )
+        )
             .let {
                 assertEquals(0, countErrors(mapValidation(it), Data::registrations, "user1", Register::email))
                 assertEquals(1, countErrors(mapValidation(it), Data::registrations, "user2", Register::email))
@@ -353,6 +424,12 @@ class ValidationBuilderTest {
         assertTrue(validation(Register(password = ""))[Register::password]!![0].contains("8"))
     }
 
-    private data class Register(val password: String = "", val email: String = "", val referredBy: String? = null, val home: Address? = null)
+    private data class Register(
+        val password: String = "",
+        val email: String = "",
+        val referredBy: String? = null,
+        val home: Address? = null
+    )
+
     private data class Address(val address: String = "", val country: String = "DE")
 }

@@ -6,13 +6,14 @@ import io.konform.validation.ValidationBuilder
 import io.konform.validation.internal.ValidationBuilderImpl.Companion.PropModifier.NonNull
 import io.konform.validation.internal.ValidationBuilderImpl.Companion.PropModifier.Optional
 import io.konform.validation.internal.ValidationBuilderImpl.Companion.PropModifier.OptionalRequired
+import io.konform.validation.internal.ValidationBuilderImpl.Companion.PropModifier.OptionalNotEmpty
 import kotlin.collections.Map.Entry
 import kotlin.reflect.KProperty1
 
 internal class ValidationBuilderImpl<T> : ValidationBuilder<T>() {
     companion object {
         private enum class PropModifier {
-            NonNull, Optional, OptionalRequired
+            NonNull, Optional, OptionalRequired, OptionalNotEmpty
         }
 
         private abstract class PropKey<T> {
@@ -30,6 +31,10 @@ internal class ValidationBuilderImpl<T> : ValidationBuilder<T>() {
                     NonNull -> NonNullPropertyValidation(property, validations)
                     Optional -> OptionalPropertyValidation(property, validations)
                     OptionalRequired -> RequiredPropertyValidation(property, validations)
+                    OptionalNotEmpty -> @Suppress("UNCHECKED_CAST") OptionalNotEmptyPropertyValidation(
+                        property as KProperty1<T, String?>,
+                        validations as Validation<String>
+                    )
                 }
             }
         }
@@ -41,11 +46,11 @@ internal class ValidationBuilderImpl<T> : ValidationBuilder<T>() {
             override fun build(builder: ValidationBuilderImpl<*>): Validation<T> {
                 @Suppress("UNCHECKED_CAST")
                 val validations = (builder as ValidationBuilderImpl<R>).build()
-                @Suppress("UNCHECKED_CAST")
                 return when (modifier) {
                     NonNull -> NonNullPropertyValidation(property, IterableValidation(validations))
                     Optional -> OptionalPropertyValidation(property, IterableValidation(validations))
                     OptionalRequired -> RequiredPropertyValidation(property, IterableValidation(validations))
+                    OptionalNotEmpty -> throw Exception("Can't use OptionalNotEmpty")
                 }
             }
         }
@@ -57,11 +62,11 @@ internal class ValidationBuilderImpl<T> : ValidationBuilder<T>() {
             override fun build(builder: ValidationBuilderImpl<*>): Validation<T> {
                 @Suppress("UNCHECKED_CAST")
                 val validations = (builder as ValidationBuilderImpl<R>).build()
-                @Suppress("UNCHECKED_CAST")
                 return when (modifier) {
                     NonNull -> NonNullPropertyValidation(property, ArrayValidation(validations))
                     Optional -> OptionalPropertyValidation(property, ArrayValidation(validations))
                     OptionalRequired -> RequiredPropertyValidation(property, ArrayValidation(validations))
+                    OptionalNotEmpty -> throw Exception("Can't use OptionalNotEmpty")
                 }
             }
         }
@@ -77,6 +82,7 @@ internal class ValidationBuilderImpl<T> : ValidationBuilder<T>() {
                     NonNull -> NonNullPropertyValidation(property, MapValidation(validations))
                     Optional -> OptionalPropertyValidation(property, MapValidation(validations))
                     OptionalRequired -> RequiredPropertyValidation(property, MapValidation(validations))
+                    OptionalNotEmpty -> throw Exception("Can't use OptionalNotEmpty")
                 }
             }
         }
@@ -91,7 +97,11 @@ internal class ValidationBuilderImpl<T> : ValidationBuilder<T>() {
     override fun Constraint<T>.hint(hint: String): Constraint<T> =
         Constraint(hint, this.templateValues, this.test).also { constraints.remove(this); constraints.add(it) }
 
-    override fun addConstraint(errorMessage: String, vararg templateValues: String, test: (T) -> Boolean): Constraint<T> {
+    override fun addConstraint(
+        errorMessage: String,
+        vararg templateValues: String,
+        test: (T) -> Boolean
+    ): Constraint<T> {
         return Constraint(errorMessage, templateValues.toList(), test).also { constraints.add(it) }
     }
 
@@ -132,6 +142,11 @@ internal class ValidationBuilderImpl<T> : ValidationBuilder<T>() {
         getOrCreateBuilder(Optional).also(init)
     }
 
+
+    override fun KProperty1<T, String?>.ifNotEmpty(init: ValidationBuilder<String>.() -> Unit) {
+        getOrCreateBuilder(OptionalNotEmpty).also(init)
+    }
+
     override fun <R> KProperty1<T, R?>.required(init: ValidationBuilder<R>.() -> Unit) {
         getOrCreateBuilder(OptionalRequired).also(init)
     }
@@ -149,4 +164,5 @@ internal class ValidationBuilderImpl<T> : ValidationBuilder<T>() {
         }
         return ValidationNode(constraints, nestedValidations + prebuiltValidations)
     }
+
 }
